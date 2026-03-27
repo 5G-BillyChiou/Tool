@@ -1,7 +1,8 @@
 using System.Diagnostics;
 using Tool.Enum;
+using Tool.Service;
 
-namespace Tool.Service;
+namespace Tool.Background;
 
 /// <summary>
 /// 背景服務 - 監控

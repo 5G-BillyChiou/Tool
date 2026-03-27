@@ -8,6 +8,7 @@ using Tool.ViewModel;
 using Tool.ViewModel.Options;
 using Microsoft.EntityFrameworkCore;
 using Tool.Model.Repository.Mongo;
+using Tool.BackgroundService;
 
 var builder = WebApplication.CreateBuilder(args);
 
