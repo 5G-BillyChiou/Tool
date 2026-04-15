@@ -21,19 +21,58 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         Console.WriteLine($"  [分鐘統計 BQ比對]  時間區間: {startAt:yyyy-MM-dd HH:mm} ~ {endAt:yyyy-MM-dd HH:mm}");
         Console.WriteLine(new string('=', 100));
 
-        var memberGameRepository = new SummaryMemberGameRepository<SummaryMemberGameMinute>(mongoDBContext);
-        var memberGameV1Repository = new SummaryMemberGameRepository<SummaryMemberGameMinuteV1>(mongoDBContext);
-        var operatorRepository = new SummaryOperatorRepository<SummaryOperatorMinute>(mongoDBContext);
-        var operatorV1Repository = new SummaryOperatorRepository<SummaryOperatorMinuteV1>(mongoDBContext);
+        var memberGameRepository      = new SummaryMemberGameRepository<SummaryMemberGameMinute>(mongoDBContext);
+        var memberGameV1Repository    = new SummaryMemberGameRepository<SummaryMemberGameMinuteV1>(mongoDBContext);
+        var operatorRepository        = new SummaryOperatorRepository<SummaryOperatorMinute>(mongoDBContext);
+        var operatorV1Repository      = new SummaryOperatorRepository<SummaryOperatorMinuteV1>(mongoDBContext);
+        var memberGameHourlyRepository = new SummaryMemberGameRepository<SummaryMemberGameHourly>(mongoDBContext);
+        var operatorHourlyRepository   = new SummaryOperatorRepository<SummaryOperatorHourly>(mongoDBContext);
 
-        var currentTime = startAt;
+        var currentTime     = startAt;
+        var currentHourStart = new DateTimeOffset(startAt.Year, startAt.Month, startAt.Day, startAt.Hour, 0, 0, startAt.Offset);
+        var hourlyMemberMinutes   = new List<SummaryMemberGameMinute>();
+        var hourlyOperatorMinutes = new List<SummaryOperatorMinute>();
 
         while (currentTime < endAt)
         {
-            RunMemberV1Comparison($"分鐘 Member [{currentTime:yyyy-MM-dd HH:mm}]", memberGameRepository.GetByPeriod(currentTime, currentTime.AddMinutes(1)), memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddMinutes(1)));
-            RunOperatorV1Comparison($"分鐘 Operator [{currentTime:yyyy-MM-dd HH:mm}]", operatorRepository.GetByPeriod(currentTime, currentTime.AddMinutes(1)), operatorV1Repository.GetByPeriod(currentTime, currentTime.AddMinutes(1)));
+            var memberMinutes   = memberGameRepository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
+            var memberV1Minutes = memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
+            var operatorMinutes   = operatorRepository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
+            var operatorV1Minutes = operatorV1Repository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
+
+            RunMemberV1Comparison($"分鐘 Member [{currentTime:yyyy-MM-dd HH:mm}]",   memberMinutes,   memberV1Minutes);
+            RunOperatorV1Comparison($"分鐘 Operator [{currentTime:yyyy-MM-dd HH:mm}]", operatorMinutes, operatorV1Minutes);
+
+            hourlyMemberMinutes.AddRange(memberMinutes);
+            hourlyOperatorMinutes.AddRange(operatorMinutes);
 
             currentTime = currentTime.AddMinutes(1);
+
+            // 當累積的分鐘資料滿一個完整的整點小時，與小時統計資料進行比對
+            if (currentTime >= currentHourStart.AddHours(1))
+            {
+                var nextHourStart = currentHourStart.AddHours(1);
+
+                // 只比對完整的整點小時（起點必須在 startAt 之前或等於）
+                if (startAt <= currentHourStart && hourlyMemberMinutes.Count > 0)
+                {
+                    Console.WriteLine($"\n  {new string('-', 98)}");
+                    Console.WriteLine($"  [分鐘加總 vs 小時比對]  {currentHourStart:yyyy-MM-dd HH:mm} ~ {nextHourStart:yyyy-MM-dd HH:mm}");
+                    Console.WriteLine($"  {new string('-', 98)}");
+
+                    var hourlyMembers   = memberGameHourlyRepository.GetByPeriod(currentHourStart, nextHourStart);
+                    var hourlyOperators = operatorHourlyRepository.GetByPeriod(currentHourStart, nextHourStart);
+
+                    RunMemberCrossLevelComparison($"分鐘加總 vs 小時 Member [{currentHourStart:yyyy-MM-dd HH:mm}]",   hourlyMemberMinutes, hourlyMembers);
+                    RunOperatorCrossLevelComparison($"分鐘加總 vs 小時 Operator [{currentHourStart:yyyy-MM-dd HH:mm}]", hourlyOperatorMinutes, hourlyOperators);
+                    Console.WriteLine($"  {new string('-', 98)}");
+                    Console.WriteLine($"  {new string('-', 98)}");
+                }
+
+                hourlyMemberMinutes.Clear();
+                hourlyOperatorMinutes.Clear();
+                currentHourStart = nextHourStart;
+            }
         }
     }
 
@@ -50,19 +89,55 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         Console.WriteLine($"  [小時統計 BQ比對]  時間區間: {startAt:yyyy-MM-dd HH:mm} ~ {endAt:yyyy-MM-dd HH:mm}");
         Console.WriteLine(new string('=', 100));
 
-        var memberGameRepository = new SummaryMemberGameRepository<SummaryMemberGameHourly>(mongoDBContext);
-        var memberGameV1Repository = new SummaryMemberGameRepository<SummaryMemberGameHourlyV1>(mongoDBContext);
-        var operatorRepository = new SummaryOperatorRepository<SummaryOperatorHourly>(mongoDBContext);
-        var operatorV1Repository = new SummaryOperatorRepository<SummaryOperatorHourlyV1>(mongoDBContext);
+        var memberGameRepository      = new SummaryMemberGameRepository<SummaryMemberGameHourly>(mongoDBContext);
+        var memberGameV1Repository    = new SummaryMemberGameRepository<SummaryMemberGameHourlyV1>(mongoDBContext);
+        var operatorRepository        = new SummaryOperatorRepository<SummaryOperatorHourly>(mongoDBContext);
+        var operatorV1Repository      = new SummaryOperatorRepository<SummaryOperatorHourlyV1>(mongoDBContext);
+        var memberGameDailyRepository = new SummaryMemberGameRepository<SummaryMemberGameDaily>(mongoDBContext);
+        var operatorDailyRepository   = new SummaryOperatorRepository<SummaryOperatorDaily>(mongoDBContext);
 
-        var currentTime = startAt;
+        var currentTime    = startAt;
+        var currentDayStart = new DateTimeOffset(startAt.Year, startAt.Month, startAt.Day, 0, 0, 0, startAt.Offset);
+        var dailyMemberHourlies   = new List<SummaryMemberGameHourly>();
+        var dailyOperatorHourlies = new List<SummaryOperatorHourly>();
 
         while (currentTime < endAt)
         {
-            RunMemberV1Comparison($"小時 Member [{currentTime:yyyy-MM-dd HH:mm}]", memberGameRepository.GetByPeriod(currentTime, currentTime.AddHours(1)), memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddHours(1)));
-            RunOperatorV1Comparison($"小時 Operator [{currentTime:yyyy-MM-dd HH:mm}]", operatorRepository.GetByPeriod(currentTime, currentTime.AddHours(1)), operatorV1Repository.GetByPeriod(currentTime, currentTime.AddHours(1)));
+            var memberHourlies   = memberGameRepository.GetByPeriod(currentTime, currentTime.AddHours(1));
+            var memberV1Hourlies = memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddHours(1));
+            var operatorHourlies   = operatorRepository.GetByPeriod(currentTime, currentTime.AddHours(1));
+            var operatorV1Hourlies = operatorV1Repository.GetByPeriod(currentTime, currentTime.AddHours(1));
+
+            RunMemberV1Comparison($"小時 Member [{currentTime:yyyy-MM-dd HH:mm}]",   memberHourlies,   memberV1Hourlies);
+            RunOperatorV1Comparison($"小時 Operator [{currentTime:yyyy-MM-dd HH:mm}]", operatorHourlies, operatorV1Hourlies);
+
+            dailyMemberHourlies.AddRange(memberHourlies);
+            dailyOperatorHourlies.AddRange(operatorHourlies);
 
             currentTime = currentTime.AddHours(1);
+
+            // 當累積的小時資料滿一整天，與日統計資料進行比對
+            if (currentTime >= currentDayStart.AddDays(1))
+            {
+                var nextDayStart = currentDayStart.AddDays(1);
+
+                if (startAt <= currentDayStart && dailyMemberHourlies.Count > 0)
+                {
+                    Console.WriteLine($"\n  {new string('-', 98)}");
+                    Console.WriteLine($"  [小時加總 vs 日比對]  {currentDayStart:yyyy-MM-dd} ~ {nextDayStart:yyyy-MM-dd}");
+                    Console.WriteLine($"  {new string('-', 98)}");
+
+                    var dailyMembers   = memberGameDailyRepository.GetByPeriod(currentDayStart, nextDayStart);
+                    var dailyOperators = operatorDailyRepository.GetByPeriod(currentDayStart, nextDayStart);
+
+                    RunMemberCrossLevelComparison($"小時加總 vs 日 Member [{currentDayStart:yyyy-MM-dd}]",   dailyMemberHourlies, dailyMembers);
+                    RunOperatorCrossLevelComparison($"小時加總 vs 日 Operator [{currentDayStart:yyyy-MM-dd}]", dailyOperatorHourlies, dailyOperators);
+                }
+
+                dailyMemberHourlies.Clear();
+                dailyOperatorHourlies.Clear();
+                currentDayStart = nextDayStart;
+            }
         }
     }
 
@@ -79,33 +154,56 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         Console.WriteLine($"  [日統計 BQ比對]  時間區間: {startAt:yyyy-MM-dd HH:mm} ~ {endAt:yyyy-MM-dd HH:mm}");
         Console.WriteLine(new string('=', 100));
 
-        var memberGameRepository   = new SummaryMemberGameRepository<SummaryMemberGameDaily>(mongoDBContext);
-        var memberGameV1Repository = new SummaryMemberGameRepository<SummaryMemberGameDailyV1>(mongoDBContext);
-        var operatorRepository       = new SummaryOperatorRepository<SummaryOperatorDaily>(mongoDBContext);
-        var operatorV1Repository     = new SummaryOperatorRepository<SummaryOperatorDailyV1>(mongoDBContext);
+        var memberGameRepository        = new SummaryMemberGameRepository<SummaryMemberGameDaily>(mongoDBContext);
+        var memberGameV1Repository      = new SummaryMemberGameRepository<SummaryMemberGameDailyV1>(mongoDBContext);
+        var operatorRepository          = new SummaryOperatorRepository<SummaryOperatorDaily>(mongoDBContext);
+        var operatorV1Repository        = new SummaryOperatorRepository<SummaryOperatorDailyV1>(mongoDBContext);
+        var memberGameMonthlyRepository = new SummaryMemberGameRepository<SummaryMemberGameMonthly>(mongoDBContext);
+        var operatorMonthlyRepository   = new SummaryOperatorRepository<SummaryOperatorMonthly>(mongoDBContext);
 
-        var currentTime = startAt;
+        var currentTime       = startAt;
+        var currentMonthStart = new DateTimeOffset(startAt.Year, startAt.Month, 1, 0, 0, 0, startAt.Offset);
+        var monthlyMemberDailies   = new List<SummaryMemberGameDaily>();
+        var monthlyOperatorDailies = new List<SummaryOperatorDaily>();
 
         while (currentTime < endAt)
         {
-            RunMemberV1Comparison($"日 Member [{currentTime:yyyy-MM-dd HH:mm}]", memberGameRepository.GetByPeriod(currentTime, currentTime.AddDays(1)), memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddDays(1)));
-            RunOperatorV1Comparison($"日 Operator [{currentTime:yyyy-MM-dd HH:mm}]", operatorRepository.GetByPeriod(currentTime, currentTime.AddDays(1)), operatorV1Repository.GetByPeriod(currentTime, currentTime.AddDays(1)));
+            var memberDailies   = memberGameRepository.GetByPeriod(currentTime, currentTime.AddDays(1));
+            var memberV1Dailies = memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddDays(1));
+            var operatorDailies   = operatorRepository.GetByPeriod(currentTime, currentTime.AddDays(1));
+            var operatorV1Dailies = operatorV1Repository.GetByPeriod(currentTime, currentTime.AddDays(1));
+
+            RunMemberV1Comparison($"日 Member [{currentTime:yyyy-MM-dd}]",   memberDailies,   memberV1Dailies);
+            RunOperatorV1Comparison($"日 Operator [{currentTime:yyyy-MM-dd}]", operatorDailies, operatorV1Dailies);
+
+            monthlyMemberDailies.AddRange(memberDailies);
+            monthlyOperatorDailies.AddRange(operatorDailies);
 
             currentTime = currentTime.AddDays(1);
+
+            // 當累積的日資料滿一整個月，與月統計資料進行比對
+            if (currentTime >= currentMonthStart.AddMonths(1))
+            {
+                var nextMonthStart = currentMonthStart.AddMonths(1);
+
+                if (startAt <= currentMonthStart && monthlyMemberDailies.Count > 0)
+                {
+                    Console.WriteLine($"\n  {new string('-', 98)}");
+                    Console.WriteLine($"  [日加總 vs 月比對]  {currentMonthStart:yyyy-MM} ~ {nextMonthStart:yyyy-MM}");
+                    Console.WriteLine($"  {new string('-', 98)}");
+
+                    var monthlyMembers   = memberGameMonthlyRepository.GetByPeriod(currentMonthStart, nextMonthStart);
+                    var monthlyOperators = operatorMonthlyRepository.GetByPeriod(currentMonthStart, nextMonthStart);
+
+                    RunMemberCrossLevelComparison($"日加總 vs 月 Member [{currentMonthStart:yyyy-MM}]",   monthlyMemberDailies, monthlyMembers);
+                    RunOperatorCrossLevelComparison($"日加總 vs 月 Operator [{currentMonthStart:yyyy-MM}]", monthlyOperatorDailies, monthlyOperators);
+                }
+
+                monthlyMemberDailies.Clear();
+                monthlyOperatorDailies.Clear();
+                currentMonthStart = nextMonthStart;
+            }
         }
-
-        //foreach (var tz in DailyAndMonthlyTimezones)
-        //{
-        //    var currentTime = startAt;
-
-        //    while (currentTime < endAt)
-        //    {
-        //        RunMemberV1Comparison($"日 Member [{currentTime:yyyy-MM-dd HH:mm}][tz={tz}]", memberGameRepository.GetByPeriod(currentTime, currentTime.AddDays(1)), memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddDays(1)));
-        //        RunOperatorV1Comparison($"日 Operator [{currentTime:yyyy-MM-dd HH:mm}][tz={tz}]", operatorRepository.GetByPeriod(currentTime, currentTime.AddDays(1)), operatorV1Repository.GetByPeriod(currentTime, currentTime.AddDays(1)));
-
-        //        currentTime = currentTime.AddDays(1);
-        //    }
-        //}
     }
 
     /// <summary>
@@ -151,6 +249,44 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
     }
 
     // ─── Private helpers ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// 跨層比對 Member：key 不含 PeriodStartAt，讓多筆分鐘記錄 group 後與小時記錄對應。
+    /// </summary>
+    private static void RunMemberCrossLevelComparison<TOrig, TV1>(string label, List<TOrig> minutes, List<TV1> hourly)
+        where TOrig : SummaryMemberGameBase
+        where TV1 : SummaryMemberGameBase
+    {
+        static string Key(SummaryMemberGameBase x) =>
+            $"{x.OperatorId}|{x.MemberId}|{x.AgentPath}|{x.GameId}|{x.CurrencySn}|{(int)x.BetCategory}|{x.Timezone ?? "00:00:00"}";
+
+        if (minutes.Any(x => x.Timezone == null))
+            for (int i = 0; i < minutes.Count; i++)
+                if (minutes[i].Timezone == null)
+                    minutes[i].Timezone = "00:00:00";
+
+        RunV1Comparison(label, minutes, hourly, Key, Key);
+    }
+
+    /// <summary>
+    /// 跨層比對 Operator：key 不含 PeriodStartAt，讓多筆分鐘記錄 group 後與小時記錄對應。
+    /// 數值欄位用 RunV1Comparison 加總比對，EstimatorBytes 用 RunMergedEstimatorComparison merge 後比 Count。
+    /// </summary>
+    private static void RunOperatorCrossLevelComparison<TOrig, TV1>(string label, List<TOrig> minutes, List<TV1> hourly)
+        where TOrig : SummaryOperatorBase
+        where TV1 : SummaryOperatorBase
+    {
+        static string Key(SummaryOperatorBase x) =>
+            $"{x.OperatorId}|{x.AgentPath}|{x.GameId}|{x.CurrencySn}|{(int)x.BetCategory}|{x.Timezone ?? "00:00:00"}";
+
+        if (minutes.Any(x => x.Timezone == null))
+            for (int i = 0; i < minutes.Count; i++)
+                if (minutes[i].Timezone == null)
+                    minutes[i].Timezone = "00:00:00";
+
+        RunV1Comparison(label, minutes, hourly, Key, Key);
+        RunMergedEstimatorComparison(label, minutes, hourly);
+    }
 
     private static void RunMemberV1Comparison<TOrig, TV1>(string label, List<TOrig> original, List<TV1> v1)
         where TOrig : SummaryMemberGameBase
@@ -202,36 +338,117 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
             v1Dict.TryAdd(v1Key(r), r);
 
         var inBoth = origDict.Keys.Intersect(v1Dict.Keys).ToList();
-        var estimatorMismatches = new List<(string Key, string Field, int OrigLen, int V1Len, bool SameLen)>();
+        var estimatorMismatches = new List<(string Key, string Field, int OrigLen, int V1Len, bool SameLen, long OrigCount, long V1Count)>();
 
         foreach (var k in inBoth)
         {
             var o = origDict[k];
             var vv = v1Dict[k];
-            CheckBytes(k, "EstimatorBytes",           o.EstimatorBytes,           vv.EstimatorBytes,           estimatorMismatches);
-            CheckBytes(k, "BasicEstimatorBytes",      o.BasicEstimatorBytes,      vv.BasicEstimatorBytes,      estimatorMismatches);
-            CheckBytes(k, "ExtraEstimatorBytes",      o.ExtraEstimatorBytes,      vv.ExtraEstimatorBytes,      estimatorMismatches);
-            CheckBytes(k, "FeatureBuyEstimatorBytes", o.FeatureBuyEstimatorBytes, vv.FeatureBuyEstimatorBytes, estimatorMismatches);
+            CheckEstimatorBytes(k, "EstimatorBytes",           o.EstimatorBytes,           vv.EstimatorBytes,           estimatorMismatches);
+            CheckEstimatorBytes(k, "BasicEstimatorBytes",      o.BasicEstimatorBytes,      vv.BasicEstimatorBytes,      estimatorMismatches);
+            CheckEstimatorBytes(k, "ExtraEstimatorBytes",      o.ExtraEstimatorBytes,      vv.ExtraEstimatorBytes,      estimatorMismatches);
+            CheckEstimatorBytes(k, "FeatureBuyEstimatorBytes", o.FeatureBuyEstimatorBytes, vv.FeatureBuyEstimatorBytes, estimatorMismatches);
         }
 
         const int maxDetail = 50;
         if (estimatorMismatches.Count > 0)
         {
-            Console.WriteLine($"    [EstimatorBytes 不一致] (最多 {maxDetail} 筆):");
-            foreach (var (key, field, origLen, v1Len, sameLen) in estimatorMismatches.Take(maxDetail))
-                Console.WriteLine($"      Field: {field,-28}  原始長度: {origLen,6}  BQ長度: {v1Len,6}{(sameLen ? "  (長度相同但內容不同)" : "")}  Key: {key}");
+            WriteRed($"    [EstimatorBytes Count 不一致] (最多 {maxDetail} 筆):");
+            foreach (var (key, field, origLen, v1Len, sameLen, origCount, v1Count) in estimatorMismatches.Take(maxDetail))
+            {
+                var countMatch = origCount == v1Count ? "Count 一致" : "Count 不一致";
+                WriteRed($"      Field: {field,-28}  原始長度: {origLen,6}  BQ長度: {v1Len,6}{(sameLen ? "  (長度相同但內容不同)" : "")}  原始Count: {origCount,8}  BQ Count: {v1Count,8}  ({countMatch})  Key: {key}");
+            }
         }
         else if (inBoth.Count > 0)
         {
-            Console.WriteLine($"  [EstimatorBytes OK] 全部一致 ({inBoth.Count} 筆)");
+            Console.WriteLine($"  [EstimatorBytes OK] Count 全部一致 ({inBoth.Count} 筆)");
         }
     }
 
-    private static void CheckBytes(string key, string field, byte[] orig, byte[] v1,
-        List<(string, string, int, int, bool)> mismatches)
+    private static void CheckEstimatorBytes(string key, string field, byte[] orig, byte[] v1,
+        List<(string, string, int, int, bool, long, long)> mismatches)
     {
-        if (!orig.SequenceEqual(v1))
-            mismatches.Add((key, field, orig.Length, v1.Length, orig.Length == v1.Length));
+        if (orig.SequenceEqual(v1)) return;
+
+        var origCount = (long)CardinalityEstimatorHelper.DeserializeAndDecompressEstimator(orig).Count();
+        var v1Count   = (long)CardinalityEstimatorHelper.DeserializeAndDecompressEstimator(v1).Count();
+
+        // bytes 不同但 Count 相同視為一致，不列入不一致清單
+        if (origCount != v1Count)
+            mismatches.Add((key, field, orig.Length, v1.Length, orig.Length == v1.Length, origCount, v1Count));
+    }
+
+    /// <summary>
+    /// 將下層的 EstimatorBytes 依 key（不含 PeriodStartAt）merge 後，
+    /// 與上層的 EstimatorBytes 解出的 Count 進行比對。
+    /// </summary>
+    private static void RunMergedEstimatorComparison<TOrig, TV1>(
+        string label,
+        List<TOrig> minuteRecords,
+        List<TV1> hourlyRecords)
+        where TOrig : SummaryOperatorBase
+        where TV1 : SummaryOperatorBase
+    {
+        // 不含 PeriodStartAt，讓不同分鐘的記錄與小時記錄落在同一個 key
+        static string Key(SummaryOperatorBase x) =>
+            $"{x.OperatorId}|{x.AgentPath}|{x.GameId}|{x.CurrencySn}|{(int)x.BetCategory}|{x.Timezone ?? "00:00:00"}";
+
+        // 將各分鐘的 bytes 收集成 List，後續 merge
+        var minuteDict = new Dictionary<string, (List<byte[]> Est, List<byte[]> Basic, List<byte[]> Extra, List<byte[]> FeatureBuy)>();
+        foreach (var r in minuteRecords)
+        {
+            var k = Key(r);
+            if (!minuteDict.TryGetValue(k, out var lists))
+            {
+                lists = (new(), new(), new(), new());
+                minuteDict[k] = lists;
+            }
+            if (r.EstimatorBytes.Length           > 0) lists.Est.Add(r.EstimatorBytes);
+            if (r.BasicEstimatorBytes.Length      > 0) lists.Basic.Add(r.BasicEstimatorBytes);
+            if (r.ExtraEstimatorBytes.Length      > 0) lists.Extra.Add(r.ExtraEstimatorBytes);
+            if (r.FeatureBuyEstimatorBytes.Length > 0) lists.FeatureBuy.Add(r.FeatureBuyEstimatorBytes);
+        }
+
+        var hourlyDict = new Dictionary<string, TV1>();
+        foreach (var r in hourlyRecords)
+            hourlyDict.TryAdd(Key(r), r);
+
+        var inBoth = minuteDict.Keys.Intersect(hourlyDict.Keys).ToList();
+        var countMismatches = new List<(string Key, string Field, long MinuteCount, long HourlyCount)>();
+
+        foreach (var k in inBoth)
+        {
+            var (est, basic, extra, featureBuy) = minuteDict[k];
+            var h = hourlyDict[k];
+            CompareEstimatorCount(k, "EstimatorBytes",           est,        h.EstimatorBytes,           countMismatches);
+            CompareEstimatorCount(k, "BasicEstimatorBytes",      basic,      h.BasicEstimatorBytes,      countMismatches);
+            CompareEstimatorCount(k, "ExtraEstimatorBytes",      extra,      h.ExtraEstimatorBytes,      countMismatches);
+            CompareEstimatorCount(k, "FeatureBuyEstimatorBytes", featureBuy, h.FeatureBuyEstimatorBytes, countMismatches);
+        }
+
+        const int maxDetail = 50;
+        if (countMismatches.Count > 0)
+        {
+            WriteRed($"    [{label}] [Merge Estimator Count 不一致] (最多 {maxDetail} 筆):");
+            foreach (var (key, field, minCount, hourlyCount) in countMismatches.Take(maxDetail))
+                WriteRed($"      Field: {field,-28}  分鐘 Merge Count: {minCount,8}  小時 Count: {hourlyCount,8}  Key: {key}");
+        }
+        else if (inBoth.Count > 0)
+        {
+            Console.WriteLine($"  [{label}] [Merge Estimator OK] 全部一致 ({inBoth.Count} 筆)");
+        }
+    }
+
+    private static void CompareEstimatorCount(string key, string field, List<byte[]> minuteBytesList, byte[] hourlyBytes,
+        List<(string, string, long, long)> mismatches)
+    {
+        var merged      = CardinalityEstimatorHelper.MergeBytesList(minuteBytesList.ToArray());
+        var minuteCount = (long)CardinalityEstimatorHelper.DeserializeAndDecompressEstimator(merged).Count();
+        var hourlyCount = (long)CardinalityEstimatorHelper.DeserializeAndDecompressEstimator(hourlyBytes).Count();
+
+        if (minuteCount != hourlyCount)
+            mismatches.Add((key, field, minuteCount, hourlyCount));
     }
 
     private static void RunV1Comparison<TOrig, TV1>(
@@ -243,6 +460,9 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         where TOrig : SummaryBetBase
         where TV1 : SummaryBetBase
     {
+        if (originalData.Count == 0 && v1Data.Count == 0)
+            return;
+
         var originalDict = BuildAggregatedDict(originalData, origKey);
         var v1Dict = BuildAggregatedDict(v1Data, v1Key);
 
@@ -256,7 +476,11 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         var status   = allMatch ? "OK  " : "FAIL";
 
         // 每個時間段一行摘要：全部一致時不再展開細節
-        Console.WriteLine($"  [{status}] {label,-38}  原始={originalData.Count,4}  BQ={v1Data.Count,4}  兩邊皆有={inBoth.Count,4}  BQ缺={onlyInOrig.Count,3}  原始缺={onlyInV1.Count,3}  不一致={mismatches.Count,3}");
+        var summaryLine = $"  [{status}] {label,-38}  原始={originalData.Count,4}  BQ={v1Data.Count,4}  兩邊皆有={inBoth.Count,4}  BQ缺={onlyInOrig.Count,3}  原始缺={onlyInV1.Count,3}  不一致={mismatches.Count,3}";
+        if (allMatch)
+            Console.WriteLine(summaryLine);
+        else
+            WriteRed(summaryLine);
 
         if (allMatch) return;
 
@@ -265,27 +489,27 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
 
         if (onlyInOrig.Count > 0)
         {
-            Console.WriteLine($"    [BQ缺少的Key] (最多 {maxDetail} 筆):");
+            WriteRed($"    [BQ缺少的Key] (最多 {maxDetail} 筆):");
             foreach (var k in onlyInOrig.Take(maxDetail))
-                Console.WriteLine($"      {k}");
+                WriteRed($"      {k}");
         }
 
         if (onlyInV1.Count > 0)
         {
-            Console.WriteLine($"    [原始缺少的Key] (最多 {maxDetail} 筆):");
+            WriteRed($"    [原始缺少的Key] (最多 {maxDetail} 筆):");
             foreach (var k in onlyInV1.Take(maxDetail))
-                Console.WriteLine($"      {k}");
+                WriteRed($"      {k}");
         }
 
         if (mismatches.Count > 0)
         {
-            Console.WriteLine($"    [數據不一致明細] (最多 {maxDetail} 筆):");
-            Console.WriteLine($"    {new string('-', 96)}");
+            WriteRed($"    [數據不一致明細] (最多 {maxDetail} 筆):");
+            WriteRed($"    {new string('-', 96)}");
             foreach (var key in mismatches.Take(maxDetail))
             {
                 var orig = originalDict[key];
                 var v1   = v1Dict[key];
-                Console.WriteLine($"    Key: {key}");
+                WriteRed($"    Key: {key}");
                 PrintFieldDiff("TotalBetCount",           orig.TotalBetCount,           v1.TotalBetCount);
                 PrintFieldDiff("TotalBetAmount",          orig.TotalBetAmount,          v1.TotalBetAmount);
                 PrintFieldDiff("TotalPayout",             orig.TotalPayout,             v1.TotalPayout);
@@ -324,7 +548,14 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
     private static void PrintFieldDiff(string field, object original, object v1)
     {
         if (!Equals(original, v1))
-            Console.WriteLine($"    {field,-30}: 原始={original}, BQ={v1}");
+            WriteRed($"    {field,-30}: 原始={original}, BQ={v1}");
+    }
+
+    private static void WriteRed(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(message);
+        Console.ResetColor();
     }
 }
 
@@ -343,7 +574,7 @@ public interface ISummaryCheckV1Service
 /// <summary>
 /// 用於 V1 比對時，將同一 Key 的多筆資料合計後進行比較的內部 DTO。
 /// </summary>
-internal class SummaryBetAggregated
+public class SummaryBetAggregated
 {
     public long TotalBetCount { get; set; }
     public decimal TotalBetAmount { get; set; }

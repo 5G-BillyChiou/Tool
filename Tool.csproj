@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CardinalityEstimation" Version="1.11.1" />
     <PackageReference Include="EntityFramework" Version="6.5.1" />
     <PackageReference Include="Google.Apis.Sheets.v4" Version="1.69.0.3694" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.15" />
@@ -19,10 +20,6 @@
     <PackageReference Include="SSH.NET" Version="2025.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Logs\" />
   </ItemGroup>
 
 </Project>

@@ -1,14 +1,13 @@
+using Microsoft.EntityFrameworkCore;
 using Tool;
+using Tool.Background;
 using Tool.Extensions;
 using Tool.Helper;
 using Tool.Model.Entity.MySQL;
 using Tool.Model.Repository.FiveGame;
-using Tool.Service;
-using Tool.ViewModel;
-using Tool.ViewModel.Options;
-using Microsoft.EntityFrameworkCore;
 using Tool.Model.Repository.Mongo;
-using Tool.BackgroundService;
+using Tool.Service;
+using Tool.ViewModel.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
