@@ -20,7 +20,7 @@ public class AccountingService( IDBHelper _dbBHelper,
         var totalStopwatch = new StopwatchHelper();
         totalStopwatch.BeginTiming();
 
-        var mongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AdminMongoConnection);
+        var mongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentWarmMongoConnection);
         var exchangeRateRepository = new ExchangeRateRepository(mongoDBContext);
         var operatorList = _operatorRepository.GetList()
                                               .Where(x => x.FirstBetAt != null)

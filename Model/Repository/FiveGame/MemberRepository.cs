@@ -1,3 +1,5 @@
+using System.Data.Entity;
+using System.Linq.Expressions;
 using Tool.Entity;
 using Tool.Model.Entity.MySQL;
 using Tool.ViewModel;
@@ -70,9 +72,36 @@ public class MemberRepository(FiveGameEntities context) : FiveGameRepository<Mem
                    .Select(x => x.Id)
                    .ToList();
     }
+
+    /// <summary>
+    /// 根據會員 ID 列表查詢會員資料
+    /// </summary>
+    public List<Member> GetListByIds(List<string> memberIds)
+    {
+        return this.GetAll()
+                   .Where(x => memberIds.Contains(x.Id))
+                   .ToList();
+    }
+
+    /// <summary>
+    /// 通過會員編號取得會員資料
+    /// </summary>
+    public List<Member> GetListByIds(List<string> memberIds, bool noTracking = true, params Expression<Func<Member, object>>[] includes)
+    {
+        var query = this.GetAll()
+                        .Where(x => memberIds.Contains(x.Id));
+
+        if (noTracking)
+            query = query.AsNoTracking();
+
+        foreach (var i in includes)
+            query = query.Include(i);
+
+        return query.ToList();
+    }
 }
 
-
+    
 /// <summary>
 /// Member Repository 介面
 /// </summary>
@@ -92,4 +121,14 @@ public interface IMemberRepository : IRepository<Member>
     /// 取得指定營運商的所有會員 ID
     /// </summary>
     List<string> GetIdsByOperatorId(string operatorId);
+
+    /// <summary>
+    /// 根據會員 ID 列表查詢會員資料
+    /// </summary>
+    List<Member> GetListByIds(List<string> memberIds);
+
+    /// <summary>
+    /// 通過會員編號取得會員資料
+    /// </summary>
+    List<Member> GetListByIds(List<string> memberId, bool noTracking = true, params Expression<Func<Member, object>>[] includes);
 }

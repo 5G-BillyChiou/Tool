@@ -30,6 +30,17 @@ public class MemberTransferLogRepository(FiveGameEntities context) : FiveGameRep
             .Where(d => d.MemberId == deleteMemberId)
             .ExecuteUpdateAsync(s => s.SetProperty(p => p.MemberId, keepMemberId));
     }
+
+    /// <summary>
+    /// 取得轉帳紀錄清單
+    /// </summary>
+    public List<MemberTransferLog> GetListByTimeRange(DateTimeOffset startAt, DateTimeOffset endAt)
+    {
+        return GetAll().Where(x => x.TransferAt >= startAt)
+                       .Where(x => x.TransferAt < endAt)
+                       .AsNoTracking()
+                       .ToList();
+    }
 }
 
 
@@ -47,4 +58,9 @@ public interface IMemberTransferLogRepository : IRepository<MemberTransferLog>
     /// 將指定的 deleteMemberId 會員轉帳紀錄更新為 keepMemberId
     /// </summary>
     Task SetMemberIdByMemberIdAsync(string keepMemberId, string deleteMemberId);
+
+    /// <summary>
+    /// 取得轉帳紀錄清單
+    /// </summary>
+    List<MemberTransferLog> GetListByTimeRange(DateTimeOffset startAt, DateTimeOffset endAt);
 }

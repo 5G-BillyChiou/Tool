@@ -1,3 +1,5 @@
+using System.Data.Entity;
+using System.Linq.Expressions;
 using Tool.Entity;
 using Tool.Enum;
 using Tool.Model.Entity.MySQL;
@@ -48,6 +50,30 @@ public class OperatorRepository(FiveGameEntities context) : FiveGameRepository<O
     {
         return this.GetAll().ToList();
     }
+
+    /// <summary>
+    /// 透過營運商編號取得資料。
+    /// </summary>
+    public List<Operator> GetListByIds(IEnumerable<string> id, bool noTracking = false, params Expression<Func<Operator, object>>[] includes)
+    {
+        var query = this.GetAllValid()
+                        .Where(x => id.Contains(x.Id));
+
+        if (noTracking)
+            query = query.AsNoTracking();
+
+        foreach (var i in includes)
+            query = query.Include(i);
+
+        return query.ToList();
+    }
+
+    /// <summary>
+    /// 回傳篩選過的所有有效資料。
+    /// </summary>
+    private IQueryable<Operator> GetAllValid()
+        => this.GetAll()
+            .Where(x => x.Deleted == false);
 }
 
 /// <summary>
@@ -74,4 +100,9 @@ public interface IOperatorRepository : IRepository<Operator>
     /// 取得所有營運商資訊（包含 WalletType）
     /// </summary>
     List<Operator> GetAllOperators();
+
+    /// <summary>
+    /// 透過營運商編號取得資料。
+    /// </summary>
+    List<Operator> GetListByIds(IEnumerable<string> id, bool noTracking = false, params Expression<Func<Operator, object>>[] includes);
 }

@@ -84,6 +84,20 @@ public class MonitorService(IServiceProvider _serviceProvider) : BackgroundServi
                         v1Service.CheckSummaryMonthlyV1();
                     }
                     break;
+                //case "20":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var memberTransferLogService = scope.ServiceProvider.GetRequiredService<IMemberTransferLogService>();
+                //        memberTransferLogService.ExportTransferError();
+                //    }
+                //    break;
+                //case "30":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var preAccountingService = scope.ServiceProvider.GetRequiredService<IPreAccountingService>();
+                //        preAccountingService.CreateAccountingInsertSql();
+                //    }
+                //    break;
                 default:
                     Console.WriteLine("Invalid option or not yet implemented.");
                     break;
@@ -122,6 +136,6 @@ public class MonitorService(IServiceProvider _serviceProvider) : BackgroundServi
         Console.WriteLine("13. 比對每日彙總 V1  (SummaryMemberGameDaily   vs SummaryMemberGameDaily_v1   | SummaryOperatorDaily   vs SummaryOperatorDaily_v1)   [+0/+8/-4]");
         Console.WriteLine("14. 比對每月彙總 V1  (SummaryMemberGameMonthly vs SummaryMemberGameMonthly_v1 | SummaryOperatorMonthly vs SummaryOperatorMonthly_v1) [+0/+8/-4]");
         Console.WriteLine("==================================================================================");
-        Console.Write("\nPlease select an operation (1-14): ");
+        Console.Write("\nPlease select an operation (1-20): ");
     }
 }

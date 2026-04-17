@@ -317,7 +317,7 @@ public class MemberCleaningService( IServiceProvider _serviceProvider,
             memberLoginLogRepository = new MemberLoginLogRepository(agentMongoDBContext);
 
             // Agent Hot DB
-            agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentMongoConnection);
+            agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentWarmMongoConnection);
             memberWalletRepository = new MemberWalletRepository(agentHotMongoDBContext);
             preAccountingResultRepository = new PreAccountingResultRepository(agentHotMongoDBContext);
 
@@ -841,7 +841,7 @@ public class MemberCleaningService( IServiceProvider _serviceProvider,
             summaryMemberGameMinuteRepository = new SummaryMemberGameRepository<SummaryMemberGameMinute>(adminMongoDBContext);
 
             // Agent Hot DB
-            agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentMongoConnection);
+            agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentWarmMongoConnection);
             memberWalletRepository = new MemberWalletRepository(agentHotMongoDBContext);
             preAccountingResultRepository = new PreAccountingResultRepository(agentHotMongoDBContext);
         }
@@ -1694,7 +1694,7 @@ public class MemberCleaningService( IServiceProvider _serviceProvider,
             summaryMemberGameMinuteRepository = new SummaryMemberGameRepository<SummaryMemberGameMinute>(adminMongoDBContext);
 
             // Agent Hot DB
-            agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentMongoConnection);
+            agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentWarmMongoConnection);
             memberWalletRepository = new MemberWalletRepository(agentHotMongoDBContext);
         }
         catch (Exception ex)
@@ -2090,7 +2090,7 @@ public class MemberCleaningService( IServiceProvider _serviceProvider,
         Console.WriteLine($"開始時間: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n");
 
         // Agent Hot DB (member_wallet 在 Hot DB)
-        var agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentMongoConnection);
+        var agentHotMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AgentWarmMongoConnection);
         var memberWalletRepository = new MemberWalletRepository(agentHotMongoDBContext);
 
         // 取得所有營運商（包含 WalletType 資訊）

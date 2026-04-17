@@ -67,21 +67,6 @@ public class DBHelper : IDBHelper
     }
 
     /// <summary>
-    /// 取得各代理營運環境的連線資訊
-    /// </summary>
-    public string GetAgentConnectionString(string host)
-    {
-        return _agentHostMap.GetOrAdd(host, h =>
-        {
-            var mongoUrl = new MongoUrl(ConfigManager.ConnectionStrings.AgentMongoConnection);
-
-            return IsDocumentDb(h)
-               ? BuildDocumentDbConnectionString(mongoUrl, h)
-               : BuildMongoConnectionString(mongoUrl, h);
-        });
-    }
-
-    /// <summary>
     /// 建立 DocumentDB 連線字串
     /// </summary>
     private string BuildDocumentDbConnectionString(MongoUrl mongoUrl, string host)
@@ -125,9 +110,4 @@ public interface IDBHelper
     /// 快速取得MongoDB資料庫
     /// </summary>
     IMongoDatabase GetMongoDatabase(string connectionString);
-
-    /// <summary>
-    /// 取得各代理營運環境的連線資訊
-    /// </summary>
-    string GetAgentConnectionString(string host);
 }

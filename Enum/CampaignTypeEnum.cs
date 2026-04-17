@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace Tool.Enum;
 
@@ -15,18 +15,30 @@ public enum CampaignTypeEnum
     /// <summary>
     /// 贈送免費旋轉 (FreeSpinBonus)
     /// </summary>
-    [Description("FSB")]
+    [Description("FreeSpinBonus")]
     CampaignTypeEnum_FreeSpinBonus = 1,
 
     /// <summary>
-    /// 紅包雨
+    /// Free Round Bonus
     /// </summary>
-    [Description("CashDrop")]
-    CampaignTypeEnum_CashDrop = 2,
+    [Description("FreeRoundBonus")]
+    CampaignTypeEnum_FreeRoundBonus = 2,
+
+    /// <summary>
+    /// Free Round API
+    /// </summary>
+    [Description("FreeRoundAPI")]
+    CampaignTypeEnum_FreeRoundAPI = 3,
 
     /// <summary>
     /// 錦標賽
     /// </summary>
     [Description("Tournament")]
-    CampaignTypeEnum_Tournament = 3,
+    CampaignTypeEnum_Tournament = 4,
+
+    /// <summary>
+    /// 紅包雨
+    /// </summary>
+    [Description("CashDrop")]
+    CampaignTypeEnum_CashDrop = 5,
 }

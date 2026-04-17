@@ -23,7 +23,7 @@ namespace Tool
         public static RequestSetting Request { get; set; } = new RequestSetting();
 
         /// <summary>
-        ///
+        /// 匯總設定
         /// </summary>
         public static SummarySetting SummarySetting { get; set; }
 
