@@ -4,14 +4,12 @@ using Tool.Model.Repository.Mongo;
 
 namespace Tool.Service;
 
-public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Service
+public class SummaryBigQueryCheckService(IDBHelper _dbBHelper) : ISummaryBigQueryCheckService
 {
-    private static readonly string[] DailyAndMonthlyTimezones = ["00:00:00", "08:00:00", "-04:00:00"];
-
     /// <summary>
     /// 比對分鐘統計：原始集合 vs _v1 集合（每個 Operator / Member 的數據是否一致）
     /// </summary>
-    public void CheckSummaryMinuteV1()
+    public void CheckSummaryBigQueryMinute()
     {
         var mongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AdminMongoConnection);
         var startAt = ConfigManager.SummarySetting.StartAt;
@@ -22,9 +20,9 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         Console.WriteLine(new string('=', 100));
 
         var memberGameRepository      = new SummaryMemberGameRepository<SummaryMemberGameMinute>(mongoDBContext);
-        var memberGameV1Repository    = new SummaryMemberGameRepository<SummaryMemberGameMinuteV1>(mongoDBContext);
+        var memberGameV1Repository    = new SummaryMemberGameRepository<SummaryBigQueryMemberGameMinute>(mongoDBContext);
         var operatorRepository        = new SummaryOperatorRepository<SummaryOperatorMinute>(mongoDBContext);
-        var operatorV1Repository      = new SummaryOperatorRepository<SummaryOperatorMinuteV1>(mongoDBContext);
+        var operatorV1Repository      = new SummaryOperatorRepository<SummaryBigQueryOperatorMinute>(mongoDBContext);
         var memberGameHourlyRepository = new SummaryMemberGameRepository<SummaryMemberGameHourly>(mongoDBContext);
         var operatorHourlyRepository   = new SummaryOperatorRepository<SummaryOperatorHourly>(mongoDBContext);
 
@@ -79,7 +77,7 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
     /// <summary>
     /// 比對小時統計：原始集合 vs _v1 集合（每個 Operator / Member 的數據是否一致）
     /// </summary>
-    public void CheckSummaryHourlyV1()
+    public void CheckSummaryBigQueryHourly()
     {
         var mongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AdminMongoConnection);
         var startAt = ConfigManager.SummarySetting.StartAt;
@@ -90,9 +88,9 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         Console.WriteLine(new string('=', 100));
 
         var memberGameRepository      = new SummaryMemberGameRepository<SummaryMemberGameHourly>(mongoDBContext);
-        var memberGameV1Repository    = new SummaryMemberGameRepository<SummaryMemberGameHourlyV1>(mongoDBContext);
+        var memberGameV1Repository    = new SummaryMemberGameRepository<SummaryBigQueryMemberGameHourly>(mongoDBContext);
         var operatorRepository        = new SummaryOperatorRepository<SummaryOperatorHourly>(mongoDBContext);
-        var operatorV1Repository      = new SummaryOperatorRepository<SummaryOperatorHourlyV1>(mongoDBContext);
+        var operatorV1Repository      = new SummaryOperatorRepository<SummaryBigQueryOperatorHourly>(mongoDBContext);
         var memberGameDailyRepository = new SummaryMemberGameRepository<SummaryMemberGameDaily>(mongoDBContext);
         var operatorDailyRepository   = new SummaryOperatorRepository<SummaryOperatorDaily>(mongoDBContext);
 
@@ -144,7 +142,7 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
     /// <summary>
     /// 比對日統計：原始集合 vs _v1 集合，針對 +0 / +8 / -4 三個時區各別比對
     /// </summary>
-    public void CheckSummaryDailyV1()
+    public void CheckSummaryBigQueryDaily()
     {
         var mongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AdminMongoConnection);
         var startAt = ConfigManager.SummarySetting.StartAt;
@@ -155,9 +153,9 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         Console.WriteLine(new string('=', 100));
 
         var memberGameRepository        = new SummaryMemberGameRepository<SummaryMemberGameDaily>(mongoDBContext);
-        var memberGameV1Repository      = new SummaryMemberGameRepository<SummaryMemberGameDailyV1>(mongoDBContext);
+        var memberGameV1Repository      = new SummaryMemberGameRepository<SummaryBigQueryMemberGameDaily>(mongoDBContext);
         var operatorRepository          = new SummaryOperatorRepository<SummaryOperatorDaily>(mongoDBContext);
-        var operatorV1Repository        = new SummaryOperatorRepository<SummaryOperatorDailyV1>(mongoDBContext);
+        var operatorV1Repository        = new SummaryOperatorRepository<SummaryBigQueryOperatorDaily>(mongoDBContext);
         var memberGameMonthlyRepository = new SummaryMemberGameRepository<SummaryMemberGameMonthly>(mongoDBContext);
         var operatorMonthlyRepository   = new SummaryOperatorRepository<SummaryOperatorMonthly>(mongoDBContext);
 
@@ -209,7 +207,7 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
     /// <summary>
     /// 比對月統計：原始集合 vs _v1 集合，針對 +0 / +8 / -4 三個時區各別比對
     /// </summary>
-    public void CheckSummaryMonthlyV1()
+    public void CheckSummaryBigQueryMonthly()
     {
         var mongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AdminMongoConnection);
         var startAt = ConfigManager.SummarySetting.StartAt;
@@ -220,9 +218,9 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
         Console.WriteLine(new string('=', 100));
 
         var memberGameRepository   = new SummaryMemberGameRepository<SummaryMemberGameMonthly>(mongoDBContext);
-        var memberGameV1Repository = new SummaryMemberGameRepository<SummaryMemberGameMonthlyV1>(mongoDBContext);
+        var memberGameV1Repository = new SummaryMemberGameRepository<SummaryBigQueryMemberGameMonthly>(mongoDBContext);
         var operatorRepository       = new SummaryOperatorRepository<SummaryOperatorMonthly>(mongoDBContext);
-        var operatorV1Repository     = new SummaryOperatorRepository<SummaryOperatorMonthlyV1>(mongoDBContext);
+        var operatorV1Repository     = new SummaryOperatorRepository<SummaryBigQueryOperatorMonthly>(mongoDBContext);
 
         var currentTime = startAt;
 
@@ -559,16 +557,16 @@ public class SummaryCheckV1Service(IDBHelper _dbBHelper) : ISummaryCheckV1Servic
     }
 }
 
-public interface ISummaryCheckV1Service
+public interface ISummaryBigQueryCheckService
 {
     /// <summary>比對分鐘統計：原始集合 vs _v1 集合</summary>
-    void CheckSummaryMinuteV1();
+    void CheckSummaryBigQueryMinute();
     /// <summary>比對小時統計：原始集合 vs _v1 集合</summary>
-    void CheckSummaryHourlyV1();
+    void CheckSummaryBigQueryHourly();
     /// <summary>比對日統計：原始集合 vs _v1 集合</summary>
-    void CheckSummaryDailyV1();
+    void CheckSummaryBigQueryDaily();
     /// <summary>比對月統計：原始集合 vs _v1 集合</summary>
-    void CheckSummaryMonthlyV1();
+    void CheckSummaryBigQueryMonthly();
 }
 
 /// <summary>

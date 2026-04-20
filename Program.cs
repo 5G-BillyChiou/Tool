@@ -41,7 +41,7 @@ builder.Services.AddScoped<IAccountingService, AccountingService>();
 builder.Services.AddScoped<IMemberCleaningService, MemberCleaningService>();
 builder.Services.AddScoped<IMemberTransferLogService, MemberTransferLogService>();
 builder.Services.AddScoped<ISummaryService, SummaryService>();
-builder.Services.AddScoped<ISummaryCheckV1Service, SummaryCheckV1Service>();
+builder.Services.AddScoped<ISummaryBigQueryCheckService, SummaryBigQueryCheckService>();
 builder.Services.AddScoped<IPreAccountingService, PreAccountingService>();
 
 // Options

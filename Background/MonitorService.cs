@@ -59,29 +59,29 @@ public class MonitorService(IServiceProvider _serviceProvider) : BackgroundServi
                 case "11":
                     using (var scope = _serviceProvider.CreateScope())
                     {
-                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryCheckV1Service>();
-                        v1Service.CheckSummaryMinuteV1();
+                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryBigQueryCheckService>();
+                        v1Service.CheckSummaryBigQueryMinute();
                     }
                     break;
                 case "12":
                     using (var scope = _serviceProvider.CreateScope())
                     {
-                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryCheckV1Service>();
-                        v1Service.CheckSummaryHourlyV1();
+                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryBigQueryCheckService>();
+                        v1Service.CheckSummaryBigQueryHourly();
                     }
                     break;
                 case "13":
                     using (var scope = _serviceProvider.CreateScope())
                     {
-                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryCheckV1Service>();
-                        v1Service.CheckSummaryDailyV1();
+                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryBigQueryCheckService>();
+                        v1Service.CheckSummaryBigQueryDaily();
                     }
                     break;
                 case "14":
                     using (var scope = _serviceProvider.CreateScope())
                     {
-                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryCheckV1Service>();
-                        v1Service.CheckSummaryMonthlyV1();
+                        var v1Service = scope.ServiceProvider.GetRequiredService<ISummaryBigQueryCheckService>();
+                        v1Service.CheckSummaryBigQueryMonthly();
                     }
                     break;
                 //case "20":
