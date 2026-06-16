@@ -66,6 +66,17 @@ public class AccountingRepository : MongoRepository<Accounting>, IAccountingRepo
            .Count();
 
     /// <summary>
+    /// 取得指定時間區間的下注記錄總數
+    /// </summary>
+    public long GetTotalAccountingBet(DateTimeOffset startAt, DateTimeOffset endAt)
+        => GetAll()
+           .Where(a => a.FinishedAt >= startAt && a.FinishedAt < endAt)
+           .Where(a => _testOperatorIds == null || _testOperatorIds.Contains(a.OperatorId) == false)
+           .Where(a => a.TestAccount == false)                                  // 排除測試帳號
+           .Where(a => a.CampaignType == CampaignTypeEnum.CampaignType_Default) // 排除活動贈送的注單
+           .Sum(x => x.Bet / 100);
+
+    /// <summary>
     /// 批次取得指定時間區間內，按分鐘分組的注單數量
     /// </summary>
     public Dictionary<DateTimeOffset, long> GetAccountingCountByMinute(DateTimeOffset startAt, DateTimeOffset endAt)
@@ -246,6 +257,11 @@ public interface IAccountingRepository : IMongoRepository<Accounting>
     /// <para>(代理排程)</para>
     /// </summary>
     long GetTotalAccountingCount(DateTimeOffset startAt, DateTimeOffset endAt);
+
+    /// <summary>
+    /// 取得指定時間區間的下注記錄總數
+    /// </summary>
+    long GetTotalAccountingBet(DateTimeOffset startAt, DateTimeOffset endAt);
 
     /// <summary>
     /// 批次取得指定時間區間內，按分鐘分組的注單數量

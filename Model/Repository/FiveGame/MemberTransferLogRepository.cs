@@ -37,7 +37,7 @@ public class MemberTransferLogRepository(FiveGameEntities context) : FiveGameRep
     public List<MemberTransferLog> GetListByTimeRange(DateTimeOffset startAt, DateTimeOffset endAt)
     {
         return GetAll().Where(x => x.TransferAt >= startAt)
-                       .Where(x => x.TransferAt < endAt)
+                       .Where(x => x.TransferAt <= endAt)
                        .AsNoTracking()
                        .ToList();
     }

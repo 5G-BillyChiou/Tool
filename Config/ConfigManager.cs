@@ -31,5 +31,10 @@ namespace Tool
         /// Google Sheets 服務帳戶憑證檔案路徑
         /// </summary>
         public static string GoogleSheetsCredentialPath { get; set; }
+
+        /// <summary>
+        /// OpenObserve Log 查詢設定
+        /// </summary>
+        public static OpenObserveSetting OpenObserveSetting { get; set; } = new();
     }
 }

@@ -243,6 +243,40 @@ public class SummaryMemberGameRepository<TSummary>(IMongoDatabase mongoDbContext
             x => (long)x.TotalBetCount
         );
     }
+
+    /// <summary>
+    /// 批次取得指定時間區間內，按 PeriodStartAt 分組的注單數量
+    /// </summary>
+    public Dictionary<DateTimeOffset, long> GetTotalBetAmountGroupByPeriod(DateTimeOffset startAt, DateTimeOffset endAt, string? timezone = null)
+    {
+        var query = _mongoCollection.AsQueryable()
+            .Where(x => x.PeriodStartAt >= startAt.UtcDateTime
+                     && x.PeriodStartAt < endAt.UtcDateTime);
+
+        if (string.IsNullOrEmpty(timezone))
+        {
+            timezone = TimeSpan.Zero.ToString();
+            query = query.Where(x => x.Timezone == null || x.Timezone == timezone);
+        }
+        else
+        {
+            query = query.Where(x => x.Timezone == timezone);
+        }
+
+        var result = query
+            .GroupBy(x => x.PeriodStartAt)
+            .Select(g => new
+            {
+                PeriodStartAt = g.Key,
+                TotalBetAmount = g.Sum(x => x.TotalBetAmount)
+            })
+            .ToList();
+
+        return result.ToDictionary(
+            x => x.PeriodStartAt,
+            x => (long)x.TotalBetAmount
+        );
+    }
 }
 
 
@@ -273,4 +307,9 @@ public interface ISummaryMemberGameRepository<TSummary> : IMongoRepository<TSumm
     /// 批次取得指定時間區間內，按 PeriodStartAt 分組的注單數量
     /// </summary>
     Dictionary<DateTimeOffset, long> GetBetCountGroupByPeriod(DateTimeOffset startAt, DateTimeOffset endAt, string? timezone = null);
+
+    /// <summary>
+    /// 批次取得指定時間區間內，按 PeriodStartAt 分組的注單數量
+    /// </summary>
+    Dictionary<DateTimeOffset, long> GetTotalBetAmountGroupByPeriod(DateTimeOffset startAt, DateTimeOffset endAt, string? timezone = null);
 }

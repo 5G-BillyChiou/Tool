@@ -1,11 +1,15 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Tool.Model.Entity.FiveGameTrans;
 
 [Table("ledger")]
-public class Ledger : BaseGameTransEntity
+public class Ledger
 {
+    [Key]
+    [Column("id")]
+    public long Id { get; set; } 
+
     [Column("member_id")]
     public string MemberId { get; set; } = string.Empty;
 
@@ -26,4 +30,7 @@ public class Ledger : BaseGameTransEntity
 
     [Column("metadata")]
     public string? Metadata { get; set; }
+
+    [Column("created_at")]
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

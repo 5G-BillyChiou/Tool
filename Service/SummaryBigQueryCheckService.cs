@@ -12,6 +12,8 @@ public class SummaryBigQueryCheckService(IDBHelper _dbBHelper) : ISummaryBigQuer
     public void CheckSummaryBigQueryMinute()
     {
         var mongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AdminMongoConnection);
+        var prodMongoDBContext = _dbBHelper.GetMongoDatabase(ConfigManager.ConnectionStrings.AdminMongoConnection);
+
         var startAt = ConfigManager.SummarySetting.StartAt;
         var endAt = ConfigManager.SummarySetting.EndAt;
 
@@ -21,10 +23,12 @@ public class SummaryBigQueryCheckService(IDBHelper _dbBHelper) : ISummaryBigQuer
 
         var memberGameRepository      = new SummaryMemberGameRepository<SummaryMemberGameMinute>(mongoDBContext);
         var memberGameV1Repository    = new SummaryMemberGameRepository<SummaryBigQueryMemberGameMinute>(mongoDBContext);
-        var operatorRepository        = new SummaryOperatorRepository<SummaryOperatorMinute>(mongoDBContext);
-        var operatorV1Repository      = new SummaryOperatorRepository<SummaryBigQueryOperatorMinute>(mongoDBContext);
-        var memberGameHourlyRepository = new SummaryMemberGameRepository<SummaryMemberGameHourly>(mongoDBContext);
-        var operatorHourlyRepository   = new SummaryOperatorRepository<SummaryOperatorHourly>(mongoDBContext);
+
+        //var operatorRepository        = new SummaryOperatorRepository<SummaryOperatorMinute>(mongoDBContext);
+        //var operatorV1Repository = new SummaryOperatorRepository<SummaryBigQueryOperatorMinute>(mongoDBContext);
+
+        //var memberGameHourlyRepository = new SummaryMemberGameRepository<SummaryMemberGameHourly>(prodMongoDBContext);
+        //var operatorHourlyRepository   = new SummaryOperatorRepository<SummaryOperatorHourly>(mongoDBContext);
 
         var currentTime     = startAt;
         var currentHourStart = new DateTimeOffset(startAt.Year, startAt.Month, startAt.Day, startAt.Hour, 0, 0, startAt.Offset);
@@ -35,42 +39,42 @@ public class SummaryBigQueryCheckService(IDBHelper _dbBHelper) : ISummaryBigQuer
         {
             var memberMinutes   = memberGameRepository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
             var memberV1Minutes = memberGameV1Repository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
-            var operatorMinutes   = operatorRepository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
-            var operatorV1Minutes = operatorV1Repository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
+            //var operatorMinutes   = operatorRepository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
+            //var operatorV1Minutes = operatorV1Repository.GetByPeriod(currentTime, currentTime.AddMinutes(1));
 
             RunMemberV1Comparison($"分鐘 Member [{currentTime:yyyy-MM-dd HH:mm}]",   memberMinutes,   memberV1Minutes);
-            RunOperatorV1Comparison($"分鐘 Operator [{currentTime:yyyy-MM-dd HH:mm}]", operatorMinutes, operatorV1Minutes);
+            //RunOperatorV1Comparison($"分鐘 Operator [{currentTime:yyyy-MM-dd HH:mm}]", operatorMinutes, operatorV1Minutes);
 
-            hourlyMemberMinutes.AddRange(memberMinutes);
-            hourlyOperatorMinutes.AddRange(operatorMinutes);
+            //hourlyMemberMinutes.AddRange(memberMinutes);
+            //hourlyOperatorMinutes.AddRange(operatorMinutes);
 
             currentTime = currentTime.AddMinutes(1);
 
             // 當累積的分鐘資料滿一個完整的整點小時，與小時統計資料進行比對
-            if (currentTime >= currentHourStart.AddHours(1))
-            {
-                var nextHourStart = currentHourStart.AddHours(1);
+            //if (currentTime >= currentHourStart.AddHours(1))
+            //{
+            //    var nextHourStart = currentHourStart.AddHours(1);
 
-                // 只比對完整的整點小時（起點必須在 startAt 之前或等於）
-                if (startAt <= currentHourStart && hourlyMemberMinutes.Count > 0)
-                {
-                    Console.WriteLine($"\n  {new string('-', 98)}");
-                    Console.WriteLine($"  [分鐘加總 vs 小時比對]  {currentHourStart:yyyy-MM-dd HH:mm} ~ {nextHourStart:yyyy-MM-dd HH:mm}");
-                    Console.WriteLine($"  {new string('-', 98)}");
+            //    // 只比對完整的整點小時（起點必須在 startAt 之前或等於）
+            //    if (startAt <= currentHourStart && hourlyMemberMinutes.Count > 0)
+            //    {
+            //        Console.WriteLine($"\n  {new string('-', 98)}");
+            //        Console.WriteLine($"  [分鐘加總 vs 小時比對]  {currentHourStart:yyyy-MM-dd HH:mm} ~ {nextHourStart:yyyy-MM-dd HH:mm}");
+            //        Console.WriteLine($"  {new string('-', 98)}");
 
-                    var hourlyMembers   = memberGameHourlyRepository.GetByPeriod(currentHourStart, nextHourStart);
-                    var hourlyOperators = operatorHourlyRepository.GetByPeriod(currentHourStart, nextHourStart);
+            //        var hourlyMembers   = memberGameHourlyRepository.GetByPeriod(currentHourStart, nextHourStart);
+            //        var hourlyOperators = operatorHourlyRepository.GetByPeriod(currentHourStart, nextHourStart);
 
-                    RunMemberCrossLevelComparison($"分鐘加總 vs 小時 Member [{currentHourStart:yyyy-MM-dd HH:mm}]",   hourlyMemberMinutes, hourlyMembers);
-                    RunOperatorCrossLevelComparison($"分鐘加總 vs 小時 Operator [{currentHourStart:yyyy-MM-dd HH:mm}]", hourlyOperatorMinutes, hourlyOperators);
-                    Console.WriteLine($"  {new string('-', 98)}");
-                    Console.WriteLine($"  {new string('-', 98)}");
-                }
+            //        RunMemberCrossLevelComparison($"分鐘加總 vs 小時 Member [{currentHourStart:yyyy-MM-dd HH:mm}]",   hourlyMemberMinutes, hourlyMembers);
+            //        RunOperatorCrossLevelComparison($"分鐘加總 vs 小時 Operator [{currentHourStart:yyyy-MM-dd HH:mm}]", hourlyOperatorMinutes, hourlyOperators);
+            //        Console.WriteLine($"  {new string('-', 98)}");
+            //        Console.WriteLine($"  {new string('-', 98)}");
+            //    }
 
-                hourlyMemberMinutes.Clear();
-                hourlyOperatorMinutes.Clear();
-                currentHourStart = nextHourStart;
-            }
+            //    hourlyMemberMinutes.Clear();
+            //    hourlyOperatorMinutes.Clear();
+            //    currentHourStart = nextHourStart;
+            //}
         }
     }
 
@@ -474,7 +478,8 @@ public class SummaryBigQueryCheckService(IDBHelper _dbBHelper) : ISummaryBigQuer
         var status   = allMatch ? "OK  " : "FAIL";
 
         // 每個時間段一行摘要：全部一致時不再展開細節
-        var summaryLine = $"  [{status}] {label,-38}  原始={originalData.Count,4}  BQ={v1Data.Count,4}  兩邊皆有={inBoth.Count,4}  BQ缺={onlyInOrig.Count,3}  原始缺={onlyInV1.Count,3}  不一致={mismatches.Count,3}";
+        // 原始/BQ 顯示聚合後 unique key 數（與 兩邊皆有+BQ缺/原始缺 的關係才自洽）
+        var summaryLine = $"  [{status}] {label,-38}  原始={originalDict.Count,4}(raw={originalData.Count})  BQ={v1Dict.Count,4}(raw={v1Data.Count})  兩邊皆有={inBoth.Count,4}  BQ缺={onlyInOrig.Count,3}  原始缺={onlyInV1.Count,3}  不一致={mismatches.Count,3}";
         if (allMatch)
             Console.WriteLine(summaryLine);
         else

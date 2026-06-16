@@ -99,9 +99,20 @@ public class MemberRepository(FiveGameEntities context) : FiveGameRepository<Mem
 
         return query.ToList();
     }
+
+    /// <summary>
+    /// 依時間區間取得各營運商的新增會員數量
+    /// </summary>
+    public Dictionary<string, int> GetNewMemberCountDict(DateTimeOffset startAt, DateTimeOffset endAt)
+    {
+        return this.GetAll()
+                   .Where(m => m.FristAccountAt >= startAt && m.FristAccountAt < endAt)
+                   .GroupBy(m => m.OperatorId)
+                   .ToDictionary(g => g.Key, g => g.Count());
+    }
 }
 
-    
+
 /// <summary>
 /// Member Repository 介面
 /// </summary>
@@ -131,4 +142,9 @@ public interface IMemberRepository : IRepository<Member>
     /// 通過會員編號取得會員資料
     /// </summary>
     List<Member> GetListByIds(List<string> memberId, bool noTracking = true, params Expression<Func<Member, object>>[] includes);
+
+    /// <summary>
+    /// 依時間區間取得各營運商的新增會員數量
+    /// </summary>
+    Dictionary<string, int> GetNewMemberCountDict(DateTimeOffset startAt, DateTimeOffset endAt);
 }

@@ -24,4 +24,14 @@ public class ConnectionStrings
     /// 代理地區Warm資料庫連線資訊
     /// </summary>
     public string AgentWarmMongoConnection { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Main Mongo 資料庫連線資訊
+    /// </summary>
+    public string ProdAdminMongoConnection { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 代理地區Warm資料庫連線資訊
+    /// </summary>
+    public string ProdAgentWarmMongoConnection { get; set; } = string.Empty;
 }

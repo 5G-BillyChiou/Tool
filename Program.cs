@@ -42,7 +42,9 @@ builder.Services.AddScoped<IMemberCleaningService, MemberCleaningService>();
 builder.Services.AddScoped<IMemberTransferLogService, MemberTransferLogService>();
 builder.Services.AddScoped<ISummaryService, SummaryService>();
 builder.Services.AddScoped<ISummaryBigQueryCheckService, SummaryBigQueryCheckService>();
+builder.Services.AddScoped<ISummaryNewMemberCheckService, SummaryNewMemberCheckService>();
 builder.Services.AddScoped<IPreAccountingService, PreAccountingService>();
+builder.Services.AddScoped<ILedgerService, LedgerService>();
 
 // Options
 builder.Services.Configure<WarmDbHost>(options =>

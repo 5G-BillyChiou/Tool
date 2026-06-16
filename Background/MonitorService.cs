@@ -84,6 +84,48 @@ public class MonitorService(IServiceProvider _serviceProvider) : BackgroundServi
                         v1Service.CheckSummaryBigQueryMonthly();
                     }
                     break;
+                //case "21":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var newMemberService = scope.ServiceProvider.GetRequiredService<ISummaryNewMemberCheckService>();
+                //        newMemberService.CheckHourly();
+                //    }
+                //    break;
+                //case "22":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var newMemberService = scope.ServiceProvider.GetRequiredService<ISummaryNewMemberCheckService>();
+                //        newMemberService.CheckDaily();
+                //    }
+                //    break;
+                //case "23":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var newMemberService = scope.ServiceProvider.GetRequiredService<ISummaryNewMemberCheckService>();
+                //        newMemberService.CheckMonthly();
+                //    }
+                //    break;
+                //case "30":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var ledgerService = scope.ServiceProvider.GetRequiredService<ILedgerService>();
+                //        ledgerService.GetHasLederButNotLog();
+                //    }
+                //    break;
+                //case "31":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var ledgerService = scope.ServiceProvider.GetRequiredService<ILedgerService>();
+                //        ledgerService.CheckLog();
+                //    }
+                //    break;
+                //case "32":
+                //    using (var scope = _serviceProvider.CreateScope())
+                //    {
+                //        var ledgerService = scope.ServiceProvider.GetRequiredService<ILedgerService>();
+                //        ledgerService.GetLog();
+                //    }
+                //    break;
                 //case "20":
                 //    using (var scope = _serviceProvider.CreateScope())
                 //    {
@@ -135,7 +177,15 @@ public class MonitorService(IServiceProvider _serviceProvider) : BackgroundServi
         Console.WriteLine("12. 比對小時彙總 V1  (SummaryMemberGameHourly  vs SummaryMemberGameHourly_v1  | SummaryOperatorHourly  vs SummaryOperatorHourly_v1)");
         Console.WriteLine("13. 比對每日彙總 V1  (SummaryMemberGameDaily   vs SummaryMemberGameDaily_v1   | SummaryOperatorDaily   vs SummaryOperatorDaily_v1)   [+0/+8/-4]");
         Console.WriteLine("14. 比對每月彙總 V1  (SummaryMemberGameMonthly vs SummaryMemberGameMonthly_v1 | SummaryOperatorMonthly vs SummaryOperatorMonthly_v1) [+0/+8/-4]");
-        Console.WriteLine("==================================================================================");
-        Console.Write("\nPlease select an operation (1-20): ");
+        //Console.WriteLine("------------------------------ 新增會員 比對 ------------------------------------");
+        //Console.WriteLine("21. 比對小時新增會員  (Member.FristAccountAt vs SummaryOperatorNewMemberHourly)");
+        //Console.WriteLine("22. 比對每日新增會員  (Member.FristAccountAt vs SummaryOperatorNewMemberDaily)  [+0/+8/-4]");
+        //Console.WriteLine("23. 比對每月新增會員  (Member.FristAccountAt vs SummaryOperatorNewMemberMonthly) [+0/+8/-4]");
+        //Console.WriteLine("==================================================================================");
+        //Console.WriteLine("30. Ledger 與 TransferLog 比對");
+        //Console.WriteLine("31. CheckLog（查詢 OpenObserve，需設定 appsettings OpenObserveSetting）");
+        //Console.WriteLine("31. CheckLog（查詢 OpenObserve，需設定 appsettings OpenObserveSetting）");
+        //Console.WriteLine("32. GetLog（查詢 OpenObserve，需設定 appsettings OpenObserveSetting）");
+        Console.Write("\nPlease select an operation (1-32): ");
     }
 }
