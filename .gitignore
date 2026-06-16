@@ -27,3 +27,4 @@ BackstageApi/appsettings.Local.json
 # 忽略 .vscode 資料夾
 .vscode
 .claude/
+appsettings.json
